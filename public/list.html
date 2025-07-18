@@ -2,51 +2,488 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Shipping Companies</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shipping Companies - Real-Time Tracking System</title>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    
+    .content {
+      padding: 30px;
+    }
+    
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    
+    .btn-secondary {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .company-list {
+      list-style: none;
+      margin-top: 20px;
+    }
+    
+    .company-item {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-left: 5px solid #667eea;
+      transition: all 0.3s ease;
+    }
+    
+    .company-item:hover {
+      transform: translateX(5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .company-name {
+      font-size: 1.5em;
+      color: #333;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    
+    .company-name:hover {
+      color: #667eea;
+    }
+    
+    .company-url {
+      color: #667eea;
+      text-decoration: none;
+      margin-bottom: 15px;
+      display: inline-block;
+    }
+    
+    .company-url:hover {
+      text-decoration: underline;
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    
+    .modal-content {
+      background-color: white;
+      margin: 5% auto;
+      padding: 30px;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 500px;
+      position: relative;
+    }
+    
+    .close {
+      position: absolute;
+      right: 20px;
+      top: 15px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #aaa;
+    }
+    
+    .close:hover {
+      color: #000;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+    
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    .error {
+      color: #f5576c;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    
+    .success {
+      color: #28a745;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    
+    .empty-state h3 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+  </style>
 </head>
 <body>
-  <h1>Shipping Companies</h1>
+  <div class="container">
+    <div class="header">
+      <h1>🚚 Shipping Companies</h1>
+      <p>Real-Time Shipment Tracking System</p>
+    </div>
+    
+    <div class="content">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <button class="btn" id="addCompanyBtn">➕ Add New Company</button>
+        <button class="btn btn-secondary" id="addCustomerBtn">👤 Add New Customer</button>
+      </div>
+      
+      <div id="loading" class="loading">
+        <h3>Loading companies...</h3>
+      </div>
+      
+      <ul id="companyList" class="company-list" style="display: none;"></ul>
+      
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <h3>No Companies Found</h3>
+        <p>Start by adding your first shipping company!</p>
+        <button class="btn" onclick="showAddCompanyModal()">➕ Add Company</button>
+      </div>
+    </div>
+  </div>
 
-  <button id="addCompanyBtn">➕ Add Company</button>
-  <ul id="companyList"></ul>
+  <!-- Add Company Modal -->
+  <div id="addCompanyModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('addCompanyModal')">&times;</span>
+      <h2>Add New Company</h2>
+      <form id="addCompanyForm">
+        <div class="form-group">
+          <label for="companyName">Company Name *</label>
+          <input type="text" id="companyName" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="companyUrl">Website URL *</label>
+          <input type="url" id="companyUrl" name="site_url" required>
+        </div>
+        <button type="submit" class="btn">Create Company</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Customer Modal -->
+  <div id="addCustomerModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('addCustomerModal')">&times;</span>
+      <h2>Add New Customer</h2>
+      <form id="addCustomerForm">
+        <div class="form-group">
+          <label for="customerName">Customer Name *</label>
+          <input type="text" id="customerName" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="customerEmail">Email *</label>
+          <input type="email" id="customerEmail" name="email" required>
+        </div>
+        <div class="form-group">
+          <label for="customerStreet">Street *</label>
+          <input type="text" id="customerStreet" name="address.street" required>
+        </div>
+        <div class="form-group">
+          <label for="customerNumber">Street Number *</label>
+          <input type="number" id="customerNumber" name="address.number" required min="1">
+        </div>
+        <div class="form-group">
+          <label for="customerCity">City *</label>
+          <input type="text" id="customerCity" name="address.city" required>
+        </div>
+        <button type="submit" class="btn">Create Customer</button>
+      </form>
+    </div>
+  </div>
 
   <script>
-    $(document).ready(function () {
-      console.log("🚀 Page loaded");
+    const API_BASE = 'http://localhost:3001';
+    
+    $(document).ready(function() {
+      loadCompanies();
+      setupFormValidation();
+      setupEventListeners();
+    });
 
-      // Load all companies from the backend
+    function setupEventListeners() {
+      $('#addCompanyBtn').click(showAddCompanyModal);
+      $('#addCustomerBtn').click(showAddCustomerModal);
+    }
+
+    function setupFormValidation() {
+      $('#addCompanyForm').validate({
+        rules: {
+          name: {
+            required: true,
+            minlength: 2,
+            maxlength: 100
+          },
+          site_url: {
+            required: true,
+            url: true
+          }
+        },
+        messages: {
+          name: {
+            required: "Company name is required",
+            minlength: "Company name must be at least 2 characters",
+            maxlength: "Company name cannot exceed 100 characters"
+          },
+          site_url: {
+            required: "Website URL is required",
+            url: "Please enter a valid URL"
+          }
+        },
+        submitHandler: function(form) {
+          createCompany();
+        }
+      });
+
+      $('#addCustomerForm').validate({
+        rules: {
+          name: {
+            required: true,
+            minlength: 2,
+            maxlength: 100
+          },
+          email: {
+            required: true,
+            email: true
+          },
+          'address.street': {
+            required: true
+          },
+          'address.number': {
+            required: true,
+            min: 1
+          },
+          'address.city': {
+            required: true
+          }
+        },
+        messages: {
+          name: {
+            required: "Customer name is required",
+            minlength: "Customer name must be at least 2 characters",
+            maxlength: "Customer name cannot exceed 100 characters"
+          },
+          email: {
+            required: "Email is required",
+            email: "Please enter a valid email address"
+          },
+          'address.street': {
+            required: "Street is required"
+          },
+          'address.number': {
+            required: "Street number is required",
+            min: "Street number must be positive"
+          },
+          'address.city': {
+            required: "City is required"
+          }
+        },
+        submitHandler: function(form) {
+          createCustomer();
+        }
+      });
+    }
+
+    function loadCompanies() {
+      $('#loading').show();
+      $('#companyList').hide();
+      $('#emptyState').hide();
+
       $.ajax({
-        url: 'http://localhost:3001/business',
-     
+        url: `${API_BASE}/buisness`,
         method: 'GET',
-        success: function (data) {
+        success: function(data) {
+          $('#loading').hide();
+          
+          if (data.length === 0) {
+            $('#emptyState').show();
+            return;
+          }
+
+          $('#companyList').empty();
           data.forEach(company => {
             $('#companyList').append(`
-              <li>
-                <strong>${company.name}</strong> - 
-                <a href="${company.site_url}" target="_blank">Visit Website</a>
-                <button onclick="addCustomer('${company._id}')">➕ Add Customer</button>
-                <button onclick="viewPackages('${company._id}')">📦 View Packages</button>
+              <li class="company-item">
+                <div class="company-name" onclick="viewPackages('${company._id}', '${company.name}')">
+                  ${company.name}
+                </div>
+                <a href="${company.site_url}" target="_blank" class="company-url">🌐 Visit Website</a>
+                <div style="margin-top: 15px;">
+                  <button class="btn btn-secondary" onclick="addCustomerForCompany('${company._id}')">👤 Add Customer</button>
+                  <button class="btn" onclick="viewPackages('${company._id}', '${company.name}')">📦 View Packages</button>
+                </div>
               </li>
             `);
           });
+          $('#companyList').show();
         },
-        error: function () {
-          alert('⚠️ Failed to load companies');
+        error: function(xhr) {
+          $('#loading').hide();
+          alert('Error loading companies: ' + (xhr.responseJSON?.error || 'Unknown error'));
         }
       });
+    }
+
+    function showAddCompanyModal() {
+      $('#addCompanyModal').show();
+      $('#addCompanyForm')[0].reset();
+    }
+
+    function showAddCustomerModal() {
+      $('#addCustomerModal').show();
+      $('#addCustomerForm')[0].reset();
+    }
+
+    function closeModal(modalId) {
+      $(`#${modalId}`).hide();
+    }
+
+    function createCompany() {
+      const formData = {
+        name: $('#companyName').val(),
+        site_url: $('#companyUrl').val()
+      };
+
+      $.ajax({
+        url: `${API_BASE}/buisness`,
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function(data) {
+          closeModal('addCompanyModal');
+          loadCompanies();
+          alert('Company created successfully!');
+        },
+        error: function(xhr) {
+          alert('Error creating company: ' + (xhr.responseJSON?.error || 'Unknown error'));
+        }
+      });
+    }
+
+    function createCustomer() {
+      const formData = {
+        name: $('#customerName').val(),
+        email: $('#customerEmail').val(),
+        address: {
+          street: $('#customerStreet').val(),
+          number: parseInt($('#customerNumber').val()),
+          city: $('#customerCity').val()
+        }
+      };
+
+      $.ajax({
+        url: `${API_BASE}/customers`,
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function(data) {
+          closeModal('addCustomerModal');
+          alert('Customer created successfully!');
+        },
+        error: function(xhr) {
+          alert('Error creating customer: ' + (xhr.responseJSON?.error || 'Unknown error'));
+        }
+      });
+    }
+
+    function addCustomerForCompany(companyId) {
+      showAddCustomerModal();
+    }
+
+    function viewPackages(companyId, companyName) {
+      window.location.href = `packages.html?companyId=${companyId}&companyName=${encodeURIComponent(companyName)}`;
+    }
+
+    // Close modal when clicking outside
+    $(window).click(function(event) {
+      if (event.target.classList.contains('modal')) {
+        $(event.target).hide();
+      }
     });
-
-    // Placeholder for add customer
-    function addCustomer(companyId) {
-      alert("Add customer for company ID: " + companyId);
-    }
-
-    // Placeholder for view packages
-    function viewPackages(companyId) {
-      alert("View packages for company ID: " + companyId);
-    }
   </script>
 </body>
 </html>

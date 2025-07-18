@@ -26,12 +26,12 @@ app.get('/', (req, res) => {
 });
 
 // ✅ المسارات
-app.use('/business', require('./routes/companyRoutes'));
+app.use('/buisness', require('./routes/companyRoutes'));
 app.use('/customers', require('./routes/customerRoutes'));
 app.use('/packages', require('./routes/packageRoutes'));
 
 // ✅ تشغيل السيرفر
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

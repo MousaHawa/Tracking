@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Package Tracking - Real-Time System</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 25px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    
+    .back-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    
+    .content {
+      padding: 30px;
+    }
+    
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .btn-secondary {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    .btn-warning {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+    
+    .package-list {
+      margin-top: 20px;
+    }
+    
+    .package-item {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-left: 5px solid #667eea;
+      transition: all 0.3s ease;
+    }
+    
+    .package-item:hover {
+      transform: translateX(5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .package-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .package-id {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
+    }
+    
+    .package-id:hover {
+      color: #667eea;
+    }
+    
+    .package-status {
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    
+    .status-packed { background: #ffeaa7; color: #d63031; }
+    .status-shipped { background: #74b9ff; color: #0984e3; }
+    .status-intransit { background: #fd79a8; color: #e84393; }
+    .status-delivered { background: #55a3ff; color: #00b894; }
+    
+    .package-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .detail-item {
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+    
+    .detail-label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    
+    .detail-value {
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .customer-link {
+      color: #667eea;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    
+    .customer-link:hover {
+      color: #764ba2;
+    }
+    
+    .package-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    
+    .modal-content {
+      background-color: white;
+      margin: 5% auto;
+      padding: 30px;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    
+    .close {
+      position: absolute;
+      right: 20px;
+      top: 15px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #aaa;
+    }
+    
+    .close:hover {
+      color: #000;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+    
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    .search-results {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    
+    .search-result-item {
+      padding: 10px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .search-result-item:hover {
+      background: #f8f9fa;
+    }
+    
+    .search-result-item:last-child {
+      border-bottom: none;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    
+    .empty-state h3 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+    
+    .map-container {
+      width: 100%;
+      height: 400px;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+    
+    .map-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .customer-details {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    
+    .customer-details h4 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+    
+    .customer-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <a href="list.html" class="back-btn">← Back to Companies</a>
+      <h1>📦 Package Tracking</h1>
+      <p id="companyName">Loading...</p>
+    </div>
+    
+    <div class="content">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <button class="btn" id="addPackageBtn">📦 Add New Package</button>
+        <button class="btn btn-secondary" id="addCustomerBtn">👤 Add New Customer</button>
+      </div>
+      
+      <div id="loading" class="loading">
+        <h3>Loading packages...</h3>
+      </div>
+      
+      <div id="packageList" class="package-list" style="display: none;"></div>
+      
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <h3>No Packages Found</h3>
+        <p>Start by adding your first package!</p>
+        <button class="btn" onclick="showAddPackageModal()">📦 Add Package</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Package Modal -->
+  <div id="addPackageModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('addPackageModal')">&times;</span>
+      <h2>Add New Package</h2>
+      <form id="addPackageForm">
+        <div class="form-group">
+          <label for="prodId">Product ID *</label>
+          <input type="text" id="prodId" name="prod_id" required>
+        </div>
+        <div class="form-group">
+          <label for="packageName">Product Name *</label>
+          <input type="text" id="packageName" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="startDate">Start Date *</label>
+          <input type="datetime-local" id="startDate" name="start_date" required>
+        </div>
+        <div class="form-group">
+          <label for="eta">Expected Time of Arrival *</label>
+          <input type="datetime-local" id="eta" name="eta" required>
+        </div>
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status" name="status">
+            <option value="packed">Packed</option>
+            <option value="shipped">Shipped</option>
+            <option value="intransit">In Transit</option>
+            <option value="delivered">Delivered</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="customerSelect">Customer *</label>
+          <select id="customerSelect" name="customer_id" required>
+            <option value="">Select a customer...</option>
+          </select>
+        </div>
+        <button type="submit" class="btn">Create Package</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Customer Modal -->
+  <div id="addCustomerModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('addCustomerModal')">&times;</span>
+      <h2>Add New Customer</h2>
+      <form id="addCustomerForm">
+        <div class="form-group">
+          <label for="customerName">Customer Name *</label>
+          <input type="text" id="customerName" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="customerEmail">Email *</label>
+          <input type="email" id="customerEmail" name="email" required>
+        </div>
+        <div class="form-group">
+          <label for="customerStreet">Street *</label>
+          <input type="text" id="customerStreet" name="address.street" required>
+        </div>
+        <div class="form-group">
+          <label for="customerNumber">Street Number *</label>
+          <input type="number" id="customerNumber" name="address.number" required min="1">
+        </div>
+        <div class="form-group">
+          <label for="customerCity">City *</label>
+          <input type="text" id="customerCity" name="address.city" required>
+        </div>
+        <button type="submit" class="btn">Create Customer</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Location Modal -->
+  <div id="addLocationModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('addLocationModal')">&times;</span>
+      <h2>Add Location to Package</h2>
+      <form id="addLocationForm">
+        <div class="form-group">
+          <label for="locationQuery">Search Location *</label>
+          <input type="text" id="locationQuery" name="query" placeholder="Enter location (e.g., Tel Aviv, Israel)" required>
+          <button type="button" class="btn btn-secondary" onclick="searchLocation()" style="margin-top: 10px;">🔍 Search</button>
+        </div>
+        <div id="searchResults" class="search-results" style="display: none;"></div>
+        <div id="selectedLocation" style="display: none;">
+          <h4>Selected Location:</h4>
+          <p id="locationDisplay"></p>
+          <input type="hidden" id="selectedLat" name="lat">
+          <input type="hidden" id="selectedLon" name="lon">
+        </div>
+        <button type="submit" class="btn" id="addLocationBtn" style="display: none;">Add Location</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Customer Details Modal -->
+  <div id="customerDetailsModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('customerDetailsModal')">&times;</span>
+      <h2>Customer Details</h2>
+      <div id="customerDetailsContent"></div>
+    </div>
+  </div>
+
+  <!-- Package Map Modal -->
+  <div id="packageMapModal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+      <span class="close" onclick="closeModal('packageMapModal')">&times;</span>
+      <h2>Package Route</h2>
+      <div id="packageMapContent"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3001';
+    let currentCompanyId = '';
+    let currentCompanyName = '';
+    let customers = [];
+    
+    $(document).ready(function() {
+      // Get company ID from URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      currentCompanyId = urlParams.get('companyId');
+      currentCompanyName = decodeURIComponent(urlParams.get('companyName') || '');
+      
+      if (!currentCompanyId) {
+        alert('Company ID not found!');
+        window.location.href = 'list.html';
+        return;
+      }
+      
+      $('#companyName').text(currentCompanyName);
+      loadPackages();
+      loadCustomers();
+      setupFormValidation();
+      setupEventListeners();
+    });
+
+    function setupEventListeners() {
+      $('#addPackageBtn').click(showAddPackageModal);
+      $('#addCustomerBtn').click(showAddCustomerModal);
+    }
+
+    function setupFormValidation() {
+      $('#addPackageForm').validate({
+        rules: {
+          prod_id: { required: true },
+          name: { required: true },
+          start_date: { required: true },
+          eta: { required: true },
+          customer_id: { required: true }
+        },
+        messages: {
+          prod_id: { required: "Product ID is required" },
+          name: { required: "Product name is required" },
+          start_date: { required: "Start date is required" },
+          eta: { required: "ETA is required" },
+          customer_id: { required: "Customer is required" }
+        },
+        submitHandler: function(form) {
+          createPackage();
+        }
+      });
+
+      $('#addCustomerForm').validate({
+        rules: {
+          name: { required: true, minlength: 2 },
+          email: { required: true, email: true },
+          'address.street': { required: true },
+          'address.number': { required: true, min: 1 },
+          'address.city': { required: true }
+        },
+        messages: {
+          name: { required: "Customer name is required", minlength: "Name must be at least 2 characters" },
+          email: { required: "Email is required", email: "Please enter a valid email" },
+          'address.street': { required: "Street is required" },
+          'address.number': { required: "Street number is required", min: "Number must be positive" },
+          'address.city': { required: "City is required" }
+        },
+        submitHandler: function(form) {
+          createCustomer();
+        }
+      });
+
+      $('#addLocationForm').validate({
+        rules: {
+          query: { required: true }
+        },
+        messages: {
+          query: { required: "Location query is required" }
+        },
+        submitHandler: function(form) {
+          addLocationToPackage();
+        }
+      });
+    }
+
+    function loadPackages() {
+      $('#loading').show();
+      $('#packageList').hide();
+      $('#emptyState').hide();
+
+      $.ajax({
+        url: `${API_BASE}/packages/${currentCompanyId}`,
+        method: 'GET',
+        success: function(data) {
+          $('#loading').hide();
+          
+          if (data.length === 0) {
+            $('#emptyState').show();
+            return;
+          }
+
+          $('#packageList').empty();
+          data.forEach(package => {
+            const startDate = new Date(package.start_date * 1000).toLocaleString();
+            const eta = new Date(package.eta * 1000).toLocaleString();
+            
+            $('#packageList').append(`
+              <div class="package-item">
+                <div class="package-header">
+                  <div class="package-id" onclick="showPackageMap('${package._id}')">
+                    📦 ${package._id}
+                  </div>
+                  <span class="package-status status-${package.status}">${package.status}</span>
+                </div>
+                <div class="package-details">
+                  <div class="detail-item">
+                    <div class="detail-label">Product ID</div>
+                    <div class="detail-value">${package.prod_id}</div>
+                  </div>
+                  <div class="detail-item">
+                    <div class="detail-label">Product Name</div>
+                    <div class="detail-value">${package.name}</div>
+                  </div>
+                  <div class="detail-item">
+                    <div class="detail-label">Customer</div>
+                    <div class="detail-value">
+                      <span class="customer-link" onclick="showCustomerDetails('${package.customer_id._id}')">
+                        ${package.customer_id.name}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="detail-item">
+                    <div class="detail-label">Start Date</div>
+                    <div class="detail-value">${startDate}</div>
+                  </div>
+                  <div class="detail-item">
+                    <div class="detail-label">ETA</div>
+                    <div class="detail-value">${eta}</div>
+                  </div>
+                  <div class="detail-item">
+                    <div class="detail-label">Path Points</div>
+                    <div class="detail-value">${package.path.length}</div>
+                  </div>
+                </div>
+                <div class="package-actions">
+                  <button class="btn btn-success" onclick="showAddLocationModal('${package._id}')">📍 Add Location</button>
+                  <button class="btn btn-warning" onclick="showPackageMap('${package._id}')">🗺️ View Route</button>
+                </div>
+              </div>
+            `);
+          });
+          $('#packageList').show();
+        },
+        error: function(xhr) {
+          $('#loading').hide();
+          alert('Error loading packages: ' + (xhr.responseJSON?.error || 'Unknown error'));
+        }
+      });
+    }
+
+    function loadCustomers() {
+      $.ajax({
+        url: `${API_BASE}/customers`,
+        method: 'GET',
+        success: function(data) {
+          customers = data;
+          updateCustomerSelect();
+        },
+        error: function(xhr) {
+          console.error('Error loading customers:', xhr.responseJSON?.error || 'Unknown error');
+        }
+      });
+    }
+
+    function updateCustomerSelect() {
+      const select = $('#customerSelect');
+      select.empty().append('<option value="">Select a customer...</option>');
+      
+      customers.forEach(customer => {
+        select.append(`<option value="${customer._id}">${customer.name} - ${customer.email}</option>``);
+      });
+    }
+
+    function showAddPackageModal() {
+      $('#addPackageModal').show();
+      $('#addPackageForm')[0].reset();
+    }
+
+    function showAddCustomerModal() {
+      $('#addCustomerModal').show();
+      $('#addCustomerForm')[0].reset();
+    }
+
+    function showAddLocationModal(packageId) {
+      $('#addLocationModal').show();
+      $('#addLocationForm')[0].reset();
+      $('#addLocationForm').data('packageId', packageId);
+      $('#searchResults').hide();
+      $('#selectedLocation').hide();
+      $('#addLocationBtn').hide();
+    }
+
+    function closeModal(modalId) {
+      $(`#${modalId}`).hide();
+    }
+
+    function createPackage() {
+      const startDate = new Date($('#startDate').val()).getTime() / 1000;
+      const eta = new Date($('#eta').val()).getTime() / 1000;
+      
+      const formData = {
+        prod_id: $('#prodId').val(),
+        name: $('#packageName').val(),
+        start_date: startDate,
+        eta: eta,
+        status: $('#status').val(),
+        buisness_id: currentCompanyId,
+        customer_id: $('#customerSelect').val()
+      };
+
+      $.ajax({
+        url: `${API_BASE}/packages`,
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function(data) {
+          closeModal('addPackageModal');
+          loadPackages();
+          alert('Package created successfully!');
+        },
+        error: function(xhr) {
+          alert('Error creating package: ' + (xhr.responseJSON?.error || 'Unknown error'));
+        }
+      });
+    }
+
+    function createCustomer() {
+      const formData = {
+        name: $('#customerName').val(),
+        email: $('#customerEmail').val(),
+        address: {
+          street: $('#customerStreet').val(),
+          number: parseInt($('#customerNumber').val()),
+          city: $('#customerCity').val()
+        }
+      };
+
+      $.ajax({
+        url: `${API_BASE}/customers`,
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function(data) {
+          closeModal('addCustomerModal');
+          loadCustomers();
+          alert('Customer created successfully!');
+        },
+        error: function(xhr) {
+          alert('Error creating customer: ' + (xhr.responseJSON?.error || 'Unknown error'));
+        }
+      });
+    }
+
+    function searchLocation() {
+      const query = $('#locationQuery').val();
+      if (!query) {
+        alert('Please enter a location to search');
+        return;
+      }
+
+      $.ajax({
+        url: `${API_BASE}/packages/search/location`,
+        method: 'GET',
+        data: { query: query },
+        success: function(data) {
+          $('#searchResults').empty().append(`
+            <div class="search-result-item" onclick="selectLocation(${data.lat}, ${data.lon}, '${data.display_name}')">
+              <strong>${data.display_name}</strong><br>
+              <small>Lat: ${data.lat}, Lon: ${data.lon}</small>
+            </div>
+          `).show();
+        },
+        error: function(xhr) {
+          alert('Location not found. Please try a different search term.');
+        }
+      });
+    }
+
+    function selectLocation(lat, lon, displayName) {
+      $('#selectedLat').val(lat);
+      $('#selectedLon').val(lon);
+      $('#locationDisplay').text(displayName);
+      $('#selectedLocation').show();
+      $('#addLocationBtn').show();
+      $('#searchResults').hide();
+    }
+
+    function addLocationToPackage() {
+      const packageId = $('#addLocationForm').data('packageId');
+      const lat = parseFloat($('#selectedLat').val());
+      const lon = parseFloat($('#selectedLon').val());
+
+      $.ajax({
+        url: `${API_BASE}/packages/${packageId}/path`,
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({ lat, lon }),
+        success: function(data) {
+          closeModal('addLocationModal');
+          loadPackages();
+          alert('Location added successfully!');
+        },
+        error: function(xhr) {
+          alert('Error adding location: ' + (xhr.responseJSON?.error || 'Unknown error'));
+        }
+      });
+    }
+
+    function showCustomerDetails(customerId) {
+      const customer = customers.find(c => c._id === customerId);
+      if (!customer) {
+        alert('Customer not found');
+        return;
+      }
+
+      $('#customerDetailsContent').html(`
+        <div class="customer-details">
+          <h4>${customer.name}</h4>
+          <div class="customer-info">
+            <div>
+              <strong>Email:</strong><br>
+              ${customer.email}
+            </div>
+            <div>
+              <strong>Address:</strong><br>
+              ${customer.address.street} ${customer.address.number}<br>
+              ${customer.address.city}
+            </div>
+          </div>
+        </div>
+      `);
+      
+      $('#customerDetailsModal').show();
+    }
+
+    function showPackageMap(packageId) {
+      // Find the package data
+      $.ajax({
+        url: `${API_BASE}/packages/${currentCompanyId}`,
+        method: 'GET',
+        success: function(packages) {
+          const package = packages.find(p => p._id === packageId);
+          if (!package || package.path.length === 0) {
+            alert('No route data available for this package');
+            return;
+          }
+
+          // Build map URL with all path points
+          const markers = package.path.map((point, index) => 
+            `lonlat:${point.lon},${point.lat};type:material;color:%231f63e6;size:x-large;icon:cloud;icontype:awesome;text:${index + 1};whitecircle:no`
+          ).join('|');
+
+          const centerLon = package.path[0].lon;
+          const centerLat = package.path[0].lat;
+          
+          const mapUrl = `https://maps.geoapify.com/v1/staticmap?style=osm-bright-grey&width=700&height=400&center=lonlat:${centerLon},${centerLat}&zoom=12&marker=${markers}&apiKey=demo`;
+
+          $('#packageMapContent').html(`
+            <div class="map-container">
+              <img src="${mapUrl}" alt="Package Route" onerror="this.src='https://via.placeholder.com/700x400?text=Map+Not+Available'">
+            </div>
+            <div style="margin-top: 15px;">
+              <strong>Package:</strong> ${package.name} (${package.prod_id})<br>
+              <strong>Status:</strong> ${package.status}<br>
+              <strong>Route Points:</strong> ${package.path.length}
+            </div>
+          `);
+          
+          $('#packageMapModal').show();
+        },
+        error: function(xhr) {
+          alert('Error loading package data: ' + (xhr.responseJSON?.error || 'Unknown error'));
+        }
+      });
+    }
+
+    // Close modal when clicking outside
+    $(window).click(function(event) {
+      if (event.target.classList.contains('modal')) {
+        $(event.target).hide();
+      }
+    });
+  </script>
+</body>
+</html> 
