@@ -20,6 +20,11 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch((err) => console.error("❌ MongoDB error:", err));
 
+// ✅ Root route to serve the main page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'list.html'));
+});
+
 // ✅ المسارات
 app.use('/business', require('./routes/companyRoutes'));
 app.use('/customers', require('./routes/customerRoutes'));

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Shipping Companies</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+  <h1>Shipping Companies</h1>
+
+  <button id="addCompanyBtn">➕ Add Company</button>
+  <ul id="companyList"></ul>
+
+  <script>
+    $(document).ready(function () {
+      console.log("🚀 Page loaded");
+
+      // Load all companies from the backend
+      $.ajax({
+        url: 'http://localhost:3001/business',
+     
+        method: 'GET',
+        success: function (data) {
+          data.forEach(company => {
+            $('#companyList').append(`
+              <li>
+                <strong>${company.name}</strong> - 
+                <a href="${company.site_url}" target="_blank">Visit Website</a>
+                <button onclick="addCustomer('${company._id}')">➕ Add Customer</button>
+                <button onclick="viewPackages('${company._id}')">📦 View Packages</button>
+              </li>
+            `);
+          });
+        },
+        error: function () {
+          alert('⚠️ Failed to load companies');
+        }
+      });
+    });
+
+    // Placeholder for add customer
+    function addCustomer(companyId) {
+      alert("Add customer for company ID: " + companyId);
+    }
+
+    // Placeholder for view packages
+    function viewPackages(companyId) {
+      alert("View packages for company ID: " + companyId);
+    }
+  </script>
+</body>
+</html>
